@@ -1,226 +1,261 @@
+-- Pet Simulator 99 Simple Tool (Single File)
+
 local StarterGui = game:GetService("StarterGui")
 local Players = game:GetService("Players")
 local LocalPlayer = Players.LocalPlayer
 local PlayerGui = LocalPlayer:WaitForChild("PlayerGui")
 
--- Fungsi UI simpel ringan
-local function createSimpleUI()
-    -- Hapus UI lama kalau ada
+-- Notifikasi loading script
+StarterGui:SetCore("SendNotification", {
+    Title = "PetSim99 Script",
+    Text = "Memulai load script...",
+    Duration = 3
+})
+wait(3)
+
+StarterGui:SetCore("SendNotification", {
+    Title = "PetSim99 Script",
+    Text = "Script berhasil dimuat! Membuka UI...",
+    Duration = 3
+})
+wait(2)
+
+-- Simpan state opsi UI
+local settings = {
+    AutoMailRainbowPencilsAmountSlider = 5, -- 1-25
+    AutoMailPencilsToggle = false,
+    AutoMailDoodleGiftsAccountUsernameInput = "",
+    AutoMailDoodleGiftsAmountSlider = 5, -- 1-25
+    AutoMailDoodleGiftsToggle = false,
+    AutoCompleteTimeTrialsRaceModeDropdown = "Mode 1", -- "Mode 1", "Mode 2"
+    AutoCompleteTimeTrialsRaceToggle = false,
+    WalkSpeedSlider = 16, -- 0-500
+    WalkSpeedEnablerToggle = false,
+    NoClipToggle = false,
+    ServerHopTypeDropdown = "Random" -- "Random", "Best Ping", "Most Players", "Least Players"
+}
+
+-- Fungsi buat UI simpel
+local function createUI()
     if PlayerGui:FindFirstChild("PetSim99SimpleUI") then
         PlayerGui.PetSim99SimpleUI:Destroy()
     end
 
-    -- Bikin ScreenGui
     local ScreenGui = Instance.new("ScreenGui")
     ScreenGui.Name = "PetSim99SimpleUI"
-    ScreenGui.ResetOnSpawn = false
     ScreenGui.Parent = PlayerGui
 
-    -- Frame utama
     local Frame = Instance.new("Frame")
-    Frame.Size = UDim2.new(0, 280, 0, 200)
-    Frame.Position = UDim2.new(0.5, -140, 0.5, -100)
-    Frame.BackgroundColor3 = Color3.fromRGB(25, 25, 25)
+    Frame.Size = UDim2.new(0, 350, 0, 400)
+    Frame.Position = UDim2.new(0.5, -175, 0.5, -200)
+    Frame.BackgroundColor3 = Color3.fromRGB(35, 35, 35)
     Frame.BorderSizePixel = 0
     Frame.Parent = ScreenGui
 
-    -- Title
     local Title = Instance.new("TextLabel")
     Title.Size = UDim2.new(1, 0, 0, 40)
     Title.BackgroundTransparency = 1
-    Title.Text = "Pet Simulator 99 Tools (Simple UI)"
-    Title.TextColor3 = Color3.new(1, 1, 1)
+    Title.Text = "Pet Simulator 99 Tools"
+    Title.TextColor3 = Color3.new(1,1,1)
     Title.Font = Enum.Font.SourceSansBold
-    Title.TextSize = 22
+    Title.TextSize = 24
     Title.Parent = Frame
 
-    -- Status Label
-    local StatusLabel = Instance.new("TextLabel")
-    StatusLabel.Size = UDim2.new(1, -20, 0, 25)
-    StatusLabel.Position = UDim2.new(0, 10, 0, 45)
-    StatusLabel.BackgroundTransparency = 1
-    StatusLabel.Text = "Status: Idle"
-    StatusLabel.TextColor3 = Color3.new(1, 1, 1)
-    StatusLabel.Font = Enum.Font.SourceSans
-    StatusLabel.TextSize = 16
-    StatusLabel.TextXAlignment = Enum.TextXAlignment.Left
-    StatusLabel.Parent = Frame
+    local yPos = 50
 
-    -- Contoh toggle sederhana (Auto Claim Paint)
-    local AutoClaim = false
-    local ToggleButton = Instance.new("TextButton")
-    ToggleButton.Size = UDim2.new(0, 260, 0, 35)
-    ToggleButton.Position = UDim2.new(0, 10, 0, 80)
-    ToggleButton.BackgroundColor3 = Color3.fromRGB(50, 50, 50)
-    ToggleButton.TextColor3 = Color3.new(1, 1, 1)
-    ToggleButton.Font = Enum.Font.SourceSansBold
-    ToggleButton.TextSize = 18
-    ToggleButton.Text = "Auto Claim Paint: OFF"
-    ToggleButton.Parent = Frame
+    -- Toggle helper function
+    local function addToggle(name, default, callback)
+        local lbl = Instance.new("TextLabel", Frame)
+        lbl.Text = name
+        lbl.TextColor3 = Color3.new(1,1,1)
+        lbl.BackgroundTransparency = 1
+        lbl.Position = UDim2.new(0, 10, 0, yPos)
+        lbl.Size = UDim2.new(0, 220, 0, 25)
+        lbl.Font = Enum.Font.SourceSans
+        lbl.TextSize = 18
 
-    ToggleButton.MouseButton1Click:Connect(function()
-        AutoClaim = not AutoClaim
-        if AutoClaim then
-            ToggleButton.Text = "Auto Claim Paint: ON"
-            StatusLabel.Text = "Status: Auto Claim Paint Enabled"
-        else
-            ToggleButton.Text = "Auto Claim Paint: OFF"
-            StatusLabel.Text = "Status: Auto Claim Paint Disabled"
-        end
-    end)
-end
+        local btn = Instance.new("TextButton", Frame)
+        btn.Size = UDim2.new(0, 80, 0, 25)
+        btn.Position = UDim2.new(0, 240, 0, yPos)
+        btn.Font = Enum.Font.SourceSansBold
+        btn.TextSize = 18
+        btn.TextColor3 = Color3.new(1,1,1)
+        btn.BackgroundColor3 = default and Color3.fromRGB(0, 150, 0) or Color3.fromRGB(150, 0, 0)
+        btn.Text = default and "ON" or "OFF"
 
--- Coba load OrionLib UI dulu
-local success, OrionLib = pcall(function()
-    return loadstring(game:HttpGet("https://raw.githubusercontent.com/shlexware/Orion/main/source"))()
-end)
+        btn.MouseButton1Click:Connect(function()
+            local newVal = not (btn.Text == "ON")
+            btn.Text = newVal and "ON" or "OFF"
+            btn.BackgroundColor3 = newVal and Color3.fromRGB(0, 150, 0) or Color3.fromRGB(150, 0, 0)
+            callback(newVal)
+        end)
+        yPos = yPos + 40
+    end
 
--- Notifikasi berhasil load script
-StarterGui:SetCore("SendNotification", {
-    Title = "PetSim99 Script",
-    Text = "Script berhasil dimuat! Membuka UI...",
-    Duration = 4
-})
+    -- Slider helper function
+    local function addSlider(name, min, max, default, callback)
+        local lbl = Instance.new("TextLabel", Frame)
+        lbl.Text = name.." ("..default..")"
+        lbl.TextColor3 = Color3.new(1,1,1)
+        lbl.BackgroundTransparency = 1
+        lbl.Position = UDim2.new(0, 10, 0, yPos)
+        lbl.Size = UDim2.new(0, 320, 0, 20)
+        lbl.Font = Enum.Font.SourceSans
+        lbl.TextSize = 16
 
-wait(4)
+        local slider = Instance.new("TextButton", Frame)
+        slider.Text = ""
+        slider.BackgroundColor3 = Color3.fromRGB(50,50,50)
+        slider.Position = UDim2.new(0, 10, 0, yPos+25)
+        slider.Size = UDim2.new(0, 320, 0, 20)
 
-if success and OrionLib then
-    -- Pakai OrionLib UI
-    local Window = OrionLib:MakeWindow({
-        Name = "Pet Simulator 99 Tools",
-        HidePremium = false,
-        SaveConfig = true,
-        ConfigFolder = "PetSim99Tools"
-    })
+        local fill = Instance.new("Frame", slider)
+        fill.BackgroundColor3 = Color3.fromRGB(0, 170, 255)
+        fill.Size = UDim2.new((default - min)/(max - min), 0, 1, 0)
 
-    -- Paint Splotches Tab
-    local PaintTab = Window:MakeTab({Name = "Paint Splotches", Icon = "rbxassetid://4483345998", PremiumOnly = false})
-    PaintTab:AddToggle({
-        Name = "Auto Claim Paint Splotches",
-        Default = false,
-        Callback = function(Value) getgenv().AutoClaimPaint = Value end
-    })
-    PaintTab:AddDropdown({
-        Name = "Paint Color",
-        Default = "Red Paint Splotche",
-        Options = {"Red Paint Splotche", "Green Paint Splotche", "Blue Paint Splotche"},
-        Callback = function(Value) getgenv().PaintColor = Value end
-    })
-
-    -- Mail Pencils Tab
-    local PencilsTab = Window:MakeTab({Name = "Mail Pencils", Icon = "rbxassetid://4483345998", PremiumOnly = false})
-    PencilsTab:AddToggle({
-        Name = "Enable Auto Mail Pencils",
-        Default = false,
-        Callback = function(Value) getgenv().AutoMailPencils = Value end
-    })
-    PencilsTab:AddTextbox({
-        Name = "Account Username",
-        Default = "",
-        TextDisappear = false,
-        Callback = function(Value) getgenv().PencilUser = Value end
-    })
-    PencilsTab:AddDropdown({
-        Name = "Select Pencils",
-        Multi = true,
-        Options = {"Golden Pencil", "Diamond Pencil", "Rainbow Pencil"},
-        Callback = function(Value) getgenv().SelectedPencils = Value end
-    })
-    PencilsTab:AddSlider({
-        Name = "Golden Pencil Amount",
-        Min = 1,
-        Max = 100,
-        Default = 25,
-        Callback = function(Value) getgenv().GoldenAmount = Value end
-    })
-    PencilsTab:AddSlider({
-        Name = "Diamond Pencil Amount",
-        Min = 1,
-        Max = 50,
-        Default = 10,
-        Callback = function(Value) getgenv().DiamondAmount = Value end
-    })
-    PencilsTab:AddSlider({
-        Name = "Rainbow Pencil Amount",
-        Min = 1,
-        Max = 25,
-        Default = 5,
-        Callback = function(Value) getgenv().RainbowAmount = Value end
-    })
-
-    -- Doodle Gifts Tab
-    local GiftsTab = Window:MakeTab({Name = "Doodle Gifts", Icon = "rbxassetid://4483345998", PremiumOnly = false})
-    GiftsTab:AddToggle({
-        Name = "Enable Auto Mail Doodle Gifts",
-        Default = false,
-        Callback = function(Value) getgenv().AutoMailGifts = Value end
-    })
-    GiftsTab:AddTextbox({
-        Name = "Account Username",
-        Default = "",
-        TextDisappear = false,
-        Callback = function(Value) getgenv().GiftUser = Value end
-    })
-    GiftsTab:AddSlider({
-        Name = "Gift Amount",
-        Min = 1,
-        Max = 25,
-        Default = 5,
-        Callback = function(Value) getgenv().GiftAmount = Value end
-    })
-
-    -- Miscellaneous Tab
-    local MiscTab = Window:MakeTab({Name = "Misc Tools", Icon = "rbxassetid://4483345998", PremiumOnly = false})
-    MiscTab:AddDropdown({
-        Name = "Race Mode",
-        Options = {"Mode 1", "Mode 2"},
-        Default = "Mode 1",
-        Callback = function(Value) getgenv().RaceMode = Value end
-    })
-    MiscTab:AddToggle({
-        Name = "Auto Complete Time Trials",
-        Default = false,
-        Callback = function(Value) getgenv().AutoTimeTrials = Value end
-    })
-    MiscTab:AddSlider({
-        Name = "Walk Speed",
-        Min = 0,
-        Max = 500,
-        Default = 16,
-        Callback = function(Value)
-            if LocalPlayer.Character and LocalPlayer.Character:FindFirstChild("Humanoid") then
-                LocalPlayer.Character.Humanoid.WalkSpeed = Value
+        local dragging = false
+        slider.InputBegan:Connect(function(input)
+            if input.UserInputType == Enum.UserInputType.MouseButton1 then
+                dragging = true
             end
+        end)
+        slider.InputEnded:Connect(function(input)
+            if input.UserInputType == Enum.UserInputType.MouseButton1 then
+                dragging = false
+            end
+        end)
+        slider.InputChanged:Connect(function(input)
+            if dragging and input.UserInputType == Enum.UserInputType.MouseMovement then
+                local x = math.clamp(input.Position.X - slider.AbsolutePosition.X, 0, slider.AbsoluteSize.X)
+                local ratio = x / slider.AbsoluteSize.X
+                local val = math.floor(min + (max - min) * ratio + 0.5)
+                fill.Size = UDim2.new(ratio, 0, 1, 0)
+                lbl.Text = name.." ("..val..")"
+                callback(val)
+            end
+        end)
+
+        yPos = yPos + 60
+    end
+
+    -- Dropdown helper function
+    local function addDropdown(name, options, default, callback)
+        local lbl = Instance.new("TextLabel", Frame)
+        lbl.Text = name..": "..default
+        lbl.TextColor3 = Color3.new(1,1,1)
+        lbl.BackgroundTransparency = 1
+        lbl.Position = UDim2.new(0, 10, 0, yPos)
+        lbl.Size = UDim2.new(0, 320, 0, 25)
+        lbl.Font = Enum.Font.SourceSans
+        lbl.TextSize = 18
+
+        local btn = Instance.new("TextButton", Frame)
+        btn.Text = "Change"
+        btn.Position = UDim2.new(0, 240, 0, yPos)
+        btn.Size = UDim2.new(0, 80, 0, 25)
+        btn.BackgroundColor3 = Color3.fromRGB(70, 70, 70)
+        btn.TextColor3 = Color3.new(1,1,1)
+        btn.Font = Enum.Font.SourceSansBold
+        btn.TextSize = 18
+
+        btn.MouseButton1Click:Connect(function()
+            local currentIndex = table.find(options, default) or 1
+            local newIndex = currentIndex + 1
+            if newIndex > #options then newIndex = 1 end
+            default = options[newIndex]
+            lbl.Text = name..": "..default
+            callback(default)
+        end)
+
+        yPos = yPos + 40
+    end
+
+    -- Buat UI elemen sesuai setting dan contoh
+    addToggle("Auto Mail Pencils", settings.AutoMailPencilsToggle, function(val)
+        settings.AutoMailPencilsToggle = val
+        -- contoh logika aktifasi
+        print("Auto Mail Pencils set to", val)
+    end)
+
+    addSlider("Auto Mail Rainbow Pencils Amount", 1, 25, settings.AutoMailRainbowPencilsAmountSlider, function(val)
+        settings.AutoMailRainbowPencilsAmountSlider = val
+        print("Rainbow Pencils Amount set to", val)
+    end)
+
+    addToggle("Auto Mail Doodle Gifts", settings.AutoMailDoodleGiftsToggle, function(val)
+        settings.AutoMailDoodleGiftsToggle = val
+        print("Auto Mail Doodle Gifts set to", val)
+    end)
+
+    addSlider("Auto Mail Doodle Gifts Amount", 1, 25, settings.AutoMailDoodleGiftsAmountSlider, function(val)
+        settings.AutoMailDoodleGiftsAmountSlider = val
+        print("Doodle Gifts Amount set to", val)
+    end)
+
+    addDropdown("Race Mode", {"Mode 1", "Mode 2"}, settings.AutoCompleteTimeTrialsRaceModeDropdown, function(val)
+        settings.AutoCompleteTimeTrialsRaceModeDropdown = val
+        print("Race Mode set to", val)
+    end)
+
+    addToggle("Auto Complete Time Trials", settings.AutoCompleteTimeTrialsRaceToggle, function(val)
+        settings.AutoCompleteTimeTrialsRaceToggle = val
+        print("Auto Complete Time Trials set to", val)
+    end)
+
+    addToggle("Walk Speed Enable", settings.WalkSpeedEnablerToggle, function(val)
+        settings.WalkSpeedEnablerToggle = val
+        if val then
+            game.Players.LocalPlayer.Character.Humanoid.WalkSpeed = settings.WalkSpeedSlider
+        else
+            game.Players.LocalPlayer.Character.Humanoid.WalkSpeed = 16
         end
-    })
-    MiscTab:AddToggle({
-        Name = "Enable NoClip",
-        Default = false,
-        Callback = function(Value)
-            getgenv().NoClip = Value
-            if Value then
-                local RunService = game:GetService("RunService")
-                getgenv().NoClipConnection = RunService.Stepped:Connect(function()
-                    if getgenv().NoClip and LocalPlayer.Character then
-                        for _, part in pairs(LocalPlayer.Character:GetDescendants()) do
-                            if part:IsA("BasePart") and part.CanCollide then
+        print("Walk Speed Enable set to", val)
+    end)
+
+    addSlider("Walk Speed", 0, 500, settings.WalkSpeedSlider, function(val)
+        settings.WalkSpeedSlider = val
+        if settings.WalkSpeedEnablerToggle then
+            game.Players.LocalPlayer.Character.Humanoid.WalkSpeed = val
+        end
+        print("Walk Speed set to", val)
+    end)
+
+    addToggle("NoClip", settings.NoClipToggle, function(val)
+        settings.NoClipToggle = val
+        print("NoClip set to", val)
+        if val then
+            -- Simple noclip loop
+            spawn(function()
+                while settings.NoClipToggle do
+                    wait(0.1)
+                    local char = game.Players.LocalPlayer.Character
+                    if char then
+                        for _, part in pairs(char:GetChildren()) do
+                            if part:IsA("BasePart") then
                                 part.CanCollide = false
                             end
                         end
-                    elseif getgenv().NoClipConnection then
-                        getgenv().NoClipConnection:Disconnect()
-                        getgenv().NoClipConnection = nil
                     end
-                end)
-            elseif getgenv().NoClipConnection then
-                getgenv().NoClipConnection:Disconnect()
-                getgenv().NoClipConnection = nil
+                end
+            end)
+        else
+            local char = game.Players.LocalPlayer.Character
+            if char then
+                for _, part in pairs(char:GetChildren()) do
+                    if part:IsA("BasePart") then
+                        part.CanCollide = true
+                    end
+                end
             end
         end
-    })
+    end)
 
-    OrionLib:Init()
-else
-    -- Kalau gagal load OrionLib, pakai UI simpel
-    createSimpleUI()
+    addDropdown("Server Hop Type", {"Random", "Best Ping", "Most Players", "Least Players"}, settings.ServerHopTypeDropdown, function(val)
+        settings.ServerHopTypeDropdown = val
+        print("Server Hop Type set to", val)
+    end)
+
 end
+
+createUI()
+
